@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SJCE Student — ML & Robotics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #020b14;
+      --bg2: #040f1c;
+      --cyan: #00f5ff;
+      --cyan2: #00bcd4;
+      --orange: #ff6b00;
+      --orange2: #ff9800;
+      --text: #c8e6f0;
+      --muted: #4a7a8a;
+      --card: rgba(0, 245, 255, 0.04);
+      --border: rgba(0, 245, 255, 0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* --- SCANLINE OVERLAY --- */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* --- NAV --- */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 3rem;
+      background: rgba(2, 11, 20, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: var(--cyan);
+      letter-spacing: 0.2em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--orange); }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0; right: 0;
+      height: 1px; background: var(--cyan);
+      transform: scaleX(0);
+      transition: transform 0.2s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-links a:hover::after { transform: scaleX(1); }
+
+    /* --- HERO --- */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 8rem 3rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridPan 30s linear infinite;
+    }
+    @keyframes gridPan {
+      from { background-position: 0 0; }
+      to   { background-position: 60px 60px; }
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,245,255,0.08) 0%, transparent 70%);
+      top: 50%; left: 60%;
+      transform: translate(-50%, -50%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+      50%      { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+    }
+
+    .hero-content { position: relative; z-index: 2; max-width: 700px; }
+
+    .hero-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--orange);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .hero-tag::before {
+      content: '';
+      display: inline-block;
+      width: 30px; height: 1px;
+      background: var(--orange);
+    }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      line-height: 1.05;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff 30%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1rem, 2.5vw, 1.6rem);
+      font-weight: 400;
+      color: var(--cyan);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text);
+      opacity: 0.8;
+      max-width: 520px;
+      margin-bottom: 3rem;
+    }
+
+    .hero-btns { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+
+    .btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.85rem 2rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      transition: all 0.25s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--bg);
+    }
+    .btn-primary:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0,245,255,0.5);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      clip-path: none;
+    }
+    .btn-ghost:hover {
+      background: rgba(0,245,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    /* ROBOT SVG in hero */
+    .robot-wrap {
+      position: absolute;
+      right: 6vw; top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      opacity: 0.9;
+    }
+    .robot-wrap svg { width: clamp(180px, 22vw, 340px); height: auto; }
+
+    /* --- SECTION BASE --- */
+    section { padding: 6rem 3rem; position: relative; }
+    .section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--orange);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3rem;
+    }
+    h2 span { color: var(--cyan); }
+
+    /* --- ABOUT --- */
+    #about { background: var(--bg2); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .about-text p { margin-bottom: 1.2rem; opacity: 0.85; }
+    .stats-row {
+      display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+      border: 1px solid var(--border);
+      padding: 1.2rem 1.5rem;
+      background: var(--card);
+      flex: 1; min-width: 100px;
+    }
+    .stat-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--cyan);
+      display: block;
+    }
+    .stat-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .skills-panel {
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .skill-row { display: flex; flex-direction: column; gap: 0.4rem; }
+    .skill-top {
+      display: flex; justify-content: space-between;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+    .skill-pct { color: var(--cyan); }
+    .skill-bar {
+      height: 3px;
+      background: rgba(0,245,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .skill-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan2), var(--cyan));
+      box-shadow: 0 0 8px var(--cyan);
+      animation: barGrow 1.5s ease forwards;
+      transform-origin: left;
+    }
+    @keyframes barGrow {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    /* --- PROJECTS --- */
+    #projects { background: var(--bg); }
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--orange), var(--cyan));
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .project-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .project-card:hover::before { transform: scaleX(1); }
+
+    .project-icon {
+      font-size: 2rem; margin-bottom: 1rem;
+      filter: drop-shadow(0 0 8px var(--cyan));
+    }
+    .project-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      margin-bottom: 0.75rem;
+    }
+    .project-card h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+    .project-card p { font-size: 0.9rem; opacity: 0.75; margin-bottom: 1.2rem; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid rgba(0,245,255,0.3);
+      color: var(--cyan);
+      background: rgba(0,245,255,0.06);
+    }
+
+    /* --- EXPERIENCE --- */
+    #experience { background: var(--bg2); }
+    .timeline { max-width: 800px; margin: 0 auto; position: relative; }
+    .timeline::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, var(--cyan), transparent);
+    }
+    .timeline-item {
+      padding-left: 2.5rem;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute; left: -4px; top: 8px;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+    .tl-date {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--orange);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.3rem;
+    }
+    .tl-role {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+    .tl-org { color: var(--cyan); font-size: 0.9rem; margin-bottom: 0.6rem; }
+    .tl-desc { opacity: 0.75; font-size: 0.9rem; }
+
+    /* --- CONTACT --- */
+    #contact { background: var(--bg); text-align: center; }
+    .contact-inner { max-width: 600px; margin: 0 auto; }
+    .contact-inner p { opacity: 0.75; margin-bottom: 2.5rem; }
+    .contact-grid {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+    .contact-link {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .contact-link:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(0,245,255,0.06);
+    }
+
+    /* --- FOOTER --- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 3rem;
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* --- FLOATING PARTICLES --- */
+    .particle {
+      position: fixed;
+      width: 2px; height: 2px;
+      background: var(--cyan);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translateY(0); }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.2; }
+      100% { opacity: 0; transform: translateY(-100vh); }
+    }
+
+    /* --- ROBOTICS CLUB --- */
+    #club { background: var(--bg2); }
+
+    .club-mission {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .mission-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .mission-card:hover { transform: translateY(-4px); border-color: var(--cyan); }
+    .mission-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .mission-card h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.95rem;
+      color: #fff;
+      margin-bottom: 0.6rem;
+    }
+    .mission-card p { font-size: 0.88rem; opacity: 0.75; }
+
+    /* Roadmap */
+    .roadmap { display: flex; flex-direction: column; gap: 0; position: relative; }
+    .roadmap::before {
+      content: '';
+      position: absolute; left: 10px; top: 0; bottom: 0; width: 1px;
+      background: linear-gradient(180deg, var(--cyan), rgba(0,245,255,0.1));
+    }
+    .road-step {
+      display: flex; gap: 1.5rem;
+      padding-left: 0.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .road-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 4px;
+      border: 2px solid var(--muted);
+      background: var(--bg2);
+      position: relative; z-index: 1;
+    }
+    .road-step.done .road-dot {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+    .road-step.active .road-dot {
+      background: var(--orange);
+      border-color: var(--orange);
+      box-shadow: 0 0 12px var(--orange);
+      animation: pulse2 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse2 {
+      0%,100% { box-shadow: 0 0 10px var(--orange); }
+      50%      { box-shadow: 0 0 22px var(--orange); }
+    }
+    .road-step.upcoming .road-dot { opacity: 0.4; }
+    .road-body {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1.4rem 1.6rem;
+      flex: 1;
+    }
+    .road-step.active .road-body { border-color: rgba(255,107,0,0.4); }
+    .road-step.done .road-body { border-color: rgba(0,245,255,0.25); }
+    .road-step.upcoming .road-body { opacity: 0.55; }
+    .road-phase {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--orange);
+      margin-bottom: 0.4rem;
+    }
+    .road-step.active .road-phase { color: var(--orange2); }
+    .road-step.done .road-phase { color: var(--cyan); }
+    .road-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .road-body p { font-size: 0.88rem; opacity: 0.75; }
+
+    .club-cta {
+      margin-top: 3.5rem;
+      border: 1px solid rgba(0,245,255,0.2);
+      background: linear-gradient(135deg, rgba(0,245,255,0.04), rgba(255,107,0,0.04));
+      padding: 3rem;
+      text-align: center;
+    }
+    .club-cta h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.4rem;
+      color: #fff;
+      margin: 0.5rem 0 0.75rem;
+    }
+    .club-cta p { opacity: 0.75; max-width: 500px; margin: 0 auto; }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      section { padding: 4rem 1.5rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .robot-wrap { display: none; }
+      footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+      .club-cta { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PARTICLES -->
+<script>
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left:${Math.random()*100}vw;
+      bottom:${Math.random()*20}vh;
+      animation-duration:${8+Math.random()*14}s;
+      animation-delay:${Math.random()*10}s;
+      opacity:0;
+      width:${Math.random()>0.5?2:1}px;
+      height:${Math.random()>0.5?2:1}px;
+    `;
+    document.body.appendChild(p);
+  }
+</script>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">ML<span>.</span>ENGINEER</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#club">Robotics Club</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">SJCE Engineering · ML · AI · Robotics</div>
+    <h1>SHIVA PRASAD D R</h1>
+    <div class="hero-subtitle">Student · ML &amp; AI Engineer · Robot Builder</div>
+    <p class="hero-desc">
+      Engineering student at SJCE passionate about building robots that think.
+      I combine machine learning, computer vision, and embedded systems to bring
+      intelligent machines to life — one line of code at a time.
+    </p>
+    <div class="hero-btns">
+      <a href="#projects" class="btn btn-primary">▶ View Projects</a>
+      <a href="#contact" class="btn btn-ghost">Get In Touch</a>
+    </div>
+  </div>
+
+  <!-- Animated Robot SVG -->
+  <div class="robot-wrap">
+    <svg viewBox="0 0 260 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Head -->
+      <rect x="80" y="20" width="100" height="80" rx="12" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <!-- Eyes -->
+      <rect x="100" y="45" width="22" height="18" rx="4" fill="#00f5ff" opacity="0.9">
+        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="138" y="45" width="22" height="18" rx="4" fill="#00f5ff" opacity="0.9">
+        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <!-- Mouth -->
+      <rect x="100" y="76" width="60" height="8" rx="4" fill="#ff6b00" opacity="0.8"/>
+      <!-- Antenna -->
+      <line x1="130" y1="20" x2="130" y2="4" stroke="#00f5ff" stroke-width="1.5"/>
+      <circle cx="130" cy="3" r="4" fill="#00f5ff">
+        <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Neck -->
+      <rect x="118" y="100" width="24" height="16" rx="2" fill="#040f1c" stroke="#00f5ff" stroke-width="1"/>
+      <!-- Body -->
+      <rect x="60" y="116" width="140" height="120" rx="10" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <!-- Chest panel -->
+      <rect x="80" y="134" width="100" height="60" rx="6" fill="rgba(0,245,255,0.06)" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
+      <!-- Core light -->
+      <circle cx="130" cy="164" r="18" fill="rgba(0,245,255,0.1)" stroke="#00f5ff" stroke-width="1">
+        <animate attributeName="r" values="18;22;18" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="130" cy="164" r="8" fill="#00f5ff" opacity="0.8">
+        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Side buttons -->
+      <rect x="82" y="206" width="8" height="8" rx="2" fill="#ff6b00"/>
+      <rect x="94" y="206" width="8" height="8" rx="2" fill="#00f5ff" opacity="0.6"/>
+      <rect x="106" y="206" width="8" height="8" rx="2" fill="#ff6b00" opacity="0.5"/>
+      <!-- Arms -->
+      <rect x="16" y="120" width="36" height="100" rx="8" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="rotate" values="0 34 170;8 34 170;0 34 170;-8 34 170;0 34 170" dur="4s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="208" y="120" width="36" height="100" rx="8" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="rotate" values="0 226 170;-8 226 170;0 226 170;8 226 170;0 226 170" dur="4s" repeatCount="indefinite"/>
+      </rect>
+      <!-- Hands -->
+      <circle cx="34" cy="228" r="14" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <circle cx="226" cy="228" r="14" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <!-- Legs -->
+      <rect x="88" y="236" width="34" height="90" rx="8" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <rect x="138" y="236" width="34" height="90" rx="8" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <!-- Feet -->
+      <rect x="80" y="318" width="50" height="22" rx="6" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+      <rect x="130" y="318" width="50" height="22" rx="6" fill="#040f1c" stroke="#00f5ff" stroke-width="1.5"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-text">
+      <div class="section-label">// About Me</div>
+      <h2>Coding the <span>Future</span></h2>
+      <p>
+        I'm an engineering student at <strong style="color:var(--cyan)">SJCE (Sri Jayachamarajendra College of Engineering)</strong>,
+        passionate about building robots that think. My focus is on machine learning,
+        computer vision, and embedded systems.
+      </p>
+      <p>
+        I'm on a mission to bridge the gap between AI algorithms and real-world hardware —
+        building projects that move, sense, and make decisions autonomously.
+      </p>
+      <div class="stats-row">
+        <div class="stat"><span class="stat-num">SJCE</span><span class="stat-lbl">Engineering</span></div>
+        <div class="stat"><span class="stat-num">6+</span><span class="stat-lbl">Projects</span></div>
+        <div class="stat"><span class="stat-num">2026</span><span class="stat-lbl">Batch</span></div>
+      </div>
+    </div>
+    <div class="skills-panel">
+      <div class="section-label">// Skills</div>
+      <div class="skill-row">
+        <div class="skill-top"><span>Machine Learning / Deep Learning</span><span class="skill-pct">95%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:95%"></div></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-top"><span>Robotics &amp; ROS / ROS2</span><span class="skill-pct">90%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-top"><span>Computer Vision (OpenCV / YOLO)</span><span class="skill-pct">88%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:88%"></div></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-top"><span>Python / PyTorch / TensorFlow</span><span class="skill-pct">93%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:93%"></div></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-top"><span>Reinforcement Learning</span><span class="skill-pct">82%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:82%"></div></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-top"><span>Embedded Systems / C++</span><span class="skill-pct">78%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:78%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-label">// Projects</div>
+    <h2>Things I've <span>Built</span></h2>
+    <div class="projects-grid">
+
+      <div class="project-card">
+        <div class="project-num">PROJECT 001</div>
+        <div class="project-icon">🤖</div>
+        <h3>Line Following Robot</h3>
+        <p>Built a line-following robot using IR sensors and Arduino with PID control. The robot can navigate curves and junctions at high speed reliably.</p>
+        <div class="project-tags">
+          <span class="tag">Arduino</span><span class="tag">PID</span><span class="tag">C++</span><span class="tag">IR Sensors</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-num">PROJECT 002</div>
+        <div class="project-icon">👁️</div>
+        <h3>Hand Gesture Robot Control</h3>
+        <p>Controlled a 4-wheel robot wirelessly using hand gestures detected by a camera via MediaPipe. No physical controller needed — just your hands.</p>
+        <div class="project-tags">
+          <span class="tag">Python</span><span class="tag">MediaPipe</span><span class="tag">OpenCV</span><span class="tag">Bluetooth</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-num">PROJECT 003</div>
+        <div class="project-icon">🧠</div>
+        <h3>ML Digit Recognizer</h3>
+        <p>Trained a CNN on the MNIST dataset to recognize handwritten digits with 98.7% accuracy. Built a live drawing app to test predictions in real time.</p>
+        <div class="project-tags">
+          <span class="tag">TensorFlow</span><span class="tag">CNN</span><span class="tag">Python</span><span class="tag">Tkinter</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-num">PROJECT 004</div>
+        <div class="project-icon">🚧</div>
+        <h3>Obstacle Avoidance Robot</h3>
+        <p>A Raspberry Pi robot that uses ultrasonic sensors to detect obstacles and navigate around them autonomously using a custom avoidance algorithm.</p>
+        <div class="project-tags">
+          <span class="tag">Raspberry Pi</span><span class="tag">Ultrasonic</span><span class="tag">Python</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-num">PROJECT 005</div>
+        <div class="project-icon">🎯</div>
+        <h3>Face Detection Security Cam</h3>
+        <p>Built a Raspberry Pi–based security camera that detects and recognizes faces using OpenCV, sending alerts when an unknown face is detected.</p>
+        <div class="project-tags">
+          <span class="tag">OpenCV</span><span class="tag">Raspberry Pi</span><span class="tag">Python</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-num">PROJECT 006</div>
+        <div class="project-icon">📡</div>
+        <h3>IoT Smart Plant Monitor</h3>
+        <p>A soil moisture + temperature monitoring system using ESP32 that sends real-time data to a dashboard and auto-waters plants when soil is dry.</p>
+        <div class="project-tags">
+          <span class="tag">ESP32</span><span class="tag">IoT</span><span class="tag">Arduino</span><span class="tag">MQTT</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ROBOTICS CLUB -->
+<section id="club">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-label">// Student Club</div>
+    <h2>SJCE <span>Robotics Club</span></h2>
+    <p style="opacity:0.75;max-width:620px;margin-bottom:3rem;">
+      We are a student-driven robotics club at SJCE where engineers, coders, and makers
+      come together to design and build intelligent robots. Open to all branches —
+      if you love building, you belong here.
+    </p>
+
+    <!-- Club Mission Cards -->
+    <div class="club-mission">
+      <div class="mission-card">
+        <div class="mission-icon">🎯</div>
+        <h3>Our Mission</h3>
+        <p>To foster hands-on learning in robotics and AI, empowering SJCE students to build real intelligent systems — not just study them.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🤝</div>
+        <h3>Who Can Join</h3>
+        <p>Any SJCE student — CSE, ECE, Mech, or any branch. All you need is curiosity, a willingness to learn, and passion for building robots.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🏆</div>
+        <h3>What We Do</h3>
+        <p>Weekly build sessions, hackathons, inter-college robotics competitions, workshops on ML/ROS, and collaborative robot projects.</p>
+      </div>
+    </div>
+
+    <!-- Robot Build Roadmap -->
+    <div style="margin-top:4rem;">
+      <div class="section-label">// Current Robot Build</div>
+      <h2 style="margin-bottom:2rem;">Building <span>Bot-X1</span></h2>
+      <div class="roadmap">
+
+        <div class="road-step done">
+          <div class="road-dot"></div>
+          <div class="road-body">
+            <div class="road-phase">PHASE 01 — COMPLETE ✓</div>
+            <div class="road-title">Chassis & Hardware Design</div>
+            <p>Designed the robot frame using CAD tools. Built a 4-wheeled differential drive base with custom motor mounts and sensor brackets.</p>
+            <div class="project-tags" style="margin-top:0.75rem;">
+              <span class="tag">CAD / Fusion360</span><span class="tag">3D Printing</span><span class="tag">Arduino</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="road-step done">
+          <div class="road-dot"></div>
+          <div class="road-body">
+            <div class="road-phase">PHASE 02 — COMPLETE ✓</div>
+            <div class="road-title">Embedded Control System</div>
+            <p>Programmed low-level motor control, sensor interfacing (ultrasonic, IR), and PID tuning using Arduino + Raspberry Pi.</p>
+            <div class="project-tags" style="margin-top:0.75rem;">
+              <span class="tag">Raspberry Pi</span><span class="tag">C++</span><span class="tag">PID Control</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="road-step active">
+          <div class="road-dot"></div>
+          <div class="road-body">
+            <div class="road-phase">PHASE 03 — IN PROGRESS ⚡</div>
+            <div class="road-title">Computer Vision Integration</div>
+            <p>Integrating a camera module with YOLO-based object detection for real-time obstacle recognition and target tracking.</p>
+            <div class="project-tags" style="margin-top:0.75rem;">
+              <span class="tag">OpenCV</span><span class="tag">YOLOv8</span><span class="tag">Python</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="road-step upcoming">
+          <div class="road-dot"></div>
+          <div class="road-body">
+            <div class="road-phase">PHASE 04 — UPCOMING</div>
+            <div class="road-title">ML-Based Navigation & Autonomy</div>
+            <p>Training a reinforcement learning agent to enable fully autonomous navigation in unstructured environments without pre-built maps.</p>
+            <div class="project-tags" style="margin-top:0.75rem;">
+              <span class="tag">ROS2</span><span class="tag">SLAM</span><span class="tag">Reinforcement Learning</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="road-step upcoming">
+          <div class="road-dot"></div>
+          <div class="road-body">
+            <div class="road-phase">PHASE 05 — UPCOMING</div>
+            <div class="road-title">Competition & Showcase</div>
+            <p>Entering Bot-X1 in inter-college robotics competitions and showcasing at SJCE Tech Fest. Goal: autonomous task completion under 5 minutes.</p>
+            <div class="project-tags" style="margin-top:0.75rem;">
+              <span class="tag">Competition</span><span class="tag">Demo</span><span class="tag">Tech Fest</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Join CTA -->
+    <div class="club-cta">
+      <div class="club-cta-inner">
+        <div class="section-label">// Join Us</div>
+        <h3>Want to Build Robots at SJCE?</h3>
+        <p>We meet every Saturday at the Electronics Lab, Block C. Bring your laptop and curiosity — we'll handle the rest.</p>
+        <a href="#contact" class="btn btn-primary" style="margin-top:1.5rem;">⚡ Join the Club</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="section-label">// Contact</div>
+    <h2>Let's Build <span>Together</span></h2>
+    <p>Whether it's joining the robotics club, collaborating on a project, or just geeking out about AI — I'm always open to connecting.</p>
+    <div class="contact-grid">
+      <a href="mailto:your@email.com" class="contact-link">✉ Email Me</a>
+      <a href="#" class="contact-link">in LinkedIn</a>
+      <a href="#" class="contact-link">⌥ GitHub</a>
+      <a href="#" class="contact-link">✦ Google Scholar</a>
+    </div>
+    <a href="#" class="btn btn-primary">Download Resume</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 SHIVA PRASAD D R — SJCE Engineering Student</span>
+  <span>Built with ⚡ passion for robots</span>
+</footer>
+
+</body>
+</html>
